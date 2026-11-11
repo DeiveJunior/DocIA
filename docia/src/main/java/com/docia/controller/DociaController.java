@@ -8,6 +8,6 @@ public class DociaController {
 
     @GetMapping("/api/status")
     public String verificarStatus() {
-        return "DocIA está funcionando!";
+        return "pong";
     }
 }
