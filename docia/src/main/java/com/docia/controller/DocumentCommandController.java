@@ -1,5 +1,7 @@
 package com.docia.controller;
 
+import com.docia.dto.DocumentCommandResponse;
+import com.docia.service.PdfExtractionService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -14,9 +16,14 @@ import org.springframework.web.server.ResponseStatusException;
 public class DocumentCommandController {
 
     private static final long MAX_FILE_SIZE = 20L * 1024 * 1024;
+    private final PdfExtractionService pdfExtractionService;
+
+    public DocumentCommandController(PdfExtractionService pdfExtractionService) {
+        this.pdfExtractionService = pdfExtractionService;
+    }
 
     @PostMapping(value = "/command", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public CommandResponse receiveDocumentAndCommand(
+    public DocumentCommandResponse receiveDocumentAndCommand(
             @RequestPart("document") MultipartFile document,
             @RequestPart("command") String command) {
 
@@ -35,8 +42,8 @@ public class DocumentCommandController {
         }
 
         String contentType = document.getContentType();
-        if (contentType != null && !contentType.equalsIgnoreCase("application/pdf")
-                && !contentType.equalsIgnoreCase("application/octet-stream")) {
+        if (contentType != null && !contentType.equalsIgnoreCase(MediaType.APPLICATION_PDF_VALUE)
+                && !contentType.equalsIgnoreCase(MediaType.APPLICATION_OCTET_STREAM_VALUE)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "O arquivo enviado não está em formato PDF válido.");
         }
@@ -46,14 +53,13 @@ public class DocumentCommandController {
                     "Informe o comando a ser executado.");
         }
 
-        return new CommandResponse(
+        var extractedDocument = pdfExtractionService.extract(document);
+        return new DocumentCommandResponse(
                 originalName,
                 command.trim(),
-                "RECEIVED",
-                "Documento e comando recebidos no corpo da requisição. O processamento ainda será implementado."
+                "EXTRACTED",
+                extractedDocument.pageCount(),
+                extractedDocument.pages()
         );
-    }
-
-    public record CommandResponse(String filename, String command, String status, String message) {
     }
 }
