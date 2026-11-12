@@ -12,6 +12,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class DocumentCommandServiceTest {
 
@@ -72,8 +75,17 @@ class DocumentCommandServiceTest {
     }
 
     private DocumentCommandService service(PdfExtractionService pdfExtractionService) {
-        return new DocumentCommandService(pdfExtractionService, new EmailExtractionService(),
-                new PhoneExtractionService(), new CpfCnpjExtractionService(), new AddressExtractionService());
+        CommandInterpreterService commandInterpreterService = mock(CommandInterpreterService.class);
+        when(commandInterpreterService.interpret(anyString()))
+                .thenReturn(CommandInterpreterService.Intent.UNKNOWN);
+
+        return new DocumentCommandService(
+                pdfExtractionService,
+                new EmailExtractionService(),
+                new PhoneExtractionService(),
+                new CpfCnpjExtractionService(),
+                new AddressExtractionService(),
+                commandInterpreterService);
     }
 
     private PdfExtractionService fixedExtraction(PdfExtractionService.ExtractedDocument extracted) {
