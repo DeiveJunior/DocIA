@@ -148,6 +148,9 @@ function collectRecords(data) {
   for (const item of data?.documents ?? []) {
     records.push({ type: item.type || 'Documento', value: item.value, page: item.pageNumber });
   }
+  for (const item of data?.names ?? []) {
+    records.push({ type: 'Nome', value: item.name, page: item.pageNumber });
+  }
   for (const item of data?.addresses ?? []) {
     const parts = [item.street, item.number, item.complement, item.neighborhood, item.city, item.state, item.zipCode]
       .filter((part) => part !== null && part !== undefined && String(part).trim() !== '');
