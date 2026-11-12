@@ -33,6 +33,20 @@ class CpfCnpjExtractionServiceTest {
     }
 
     @Test
+    void extractsValidCpfAndCnpjOnSamePage() {
+        var result = service.extract(List.of(new PageText(1,
+                "CPF: 123.456.789-09 e CNPJ: 12.345.678/0001-95")));
+
+        assertEquals(2, result.size());
+        assertEquals("CPF", result.get(0).type());
+        assertEquals("123.456.789-09", result.get(0).value());
+        assertEquals(1, result.get(0).pageNumber());
+        assertEquals("CNPJ", result.get(1).type());
+        assertEquals("12.345.678/0001-95", result.get(1).value());
+        assertEquals(1, result.get(1).pageNumber());
+    }
+
+    @Test
     void rejectsInvalidCpfAndCnpj() {
         var cpfResult = service.extract(List.of(new PageText(1, "CPF: 111.444.777-36")));
         var cnpjResult = service.extract(List.of(new PageText(1, "CNPJ: 11.222.333/0001-82")));
