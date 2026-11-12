@@ -1,7 +1,6 @@
 package com.docia.controller;
 
-import com.docia.dto.DocumentCommandResponse;
-import com.docia.service.PdfExtractionService;
+import com.docia.service.DocumentCommandService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,14 +15,14 @@ import org.springframework.web.server.ResponseStatusException;
 public class DocumentCommandController {
 
     private static final long MAX_FILE_SIZE = 20L * 1024 * 1024;
-    private final PdfExtractionService pdfExtractionService;
+    private final DocumentCommandService documentCommandService;
 
-    public DocumentCommandController(PdfExtractionService pdfExtractionService) {
-        this.pdfExtractionService = pdfExtractionService;
+    public DocumentCommandController(DocumentCommandService documentCommandService) {
+        this.documentCommandService = documentCommandService;
     }
 
     @PostMapping(value = "/command", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public DocumentCommandResponse receiveDocumentAndCommand(
+    public Object receiveDocumentAndCommand(
             @RequestPart("document") MultipartFile document,
             @RequestPart("command") String command) {
 
@@ -53,13 +52,6 @@ public class DocumentCommandController {
                     "Informe o comando a ser executado.");
         }
 
-        var extractedDocument = pdfExtractionService.extract(document);
-        return new DocumentCommandResponse(
-                originalName,
-                command.trim(),
-                "EXTRACTED",
-                extractedDocument.pageCount(),
-                extractedDocument.pages()
-        );
+        return documentCommandService.process(originalName, command.trim(), document);
     }
 }
