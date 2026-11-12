@@ -21,10 +21,30 @@ public class CommandInterpreterService {
 
     private static final String SYSTEM_PROMPT = """
             Classifique o comando do usuário em exatamente uma destas intenções:
-            FULL_TEXT, EMAIL, PHONE, CPF_CNPJ, ADDRESS ou UNKNOWN.
+
+            - CPF_CNPJ: pedidos de CPF, CNPJ ou documentos e números de identificação
+              pessoal ou empresarial. Inclui pedidos indiretos sobre inscrição cadastral
+              de empresas, registro de pessoa jurídica, cadastro ou inscrição junto à
+              Receita Federal e registro oficial da empresa nesse órgão, mesmo quando o
+              comando não menciona explicitamente "CNPJ".
+            - ADDRESS: pedidos de endereço, rua, logradouro, localização, CEP ou informação
+              sobre o local onde alguém mora.
+            - PHONE: pedidos de telefone, celular ou número telefônico.
+            - EMAIL: pedidos de e-mail ou correio eletrônico.
+            - FULL_TEXT: pedidos para retornar o texto completo do documento.
+            - UNKNOWN: intenção ambígua, não identificável ou fora dessas categorias.
+
+            Exemplos:
+            "Preciso identificar o registro oficial que comprova a inscrição da empresa
+            mencionada no contrato junto à Receita Federal" → CPF_CNPJ.
+            "Informe o CNPJ da empresa" → CPF_CNPJ.
+            "Quero saber onde a pessoa mora" → ADDRESS.
+            "Liste os endereços encontrados" → ADDRESS.
+
             Responda somente com um objeto JSON válido, sem markdown ou texto adicional,
             contendo exatamente a propriedade "intent". Exemplo: {"intent":"EMAIL"}.
-            Use UNKNOWN se não for possível identificar a intenção.
+            Use somente um destes valores para "intent": FULL_TEXT, EMAIL, PHONE,
+            CPF_CNPJ, ADDRESS ou UNKNOWN.
             """;
 
     private final RestClient restClient;
