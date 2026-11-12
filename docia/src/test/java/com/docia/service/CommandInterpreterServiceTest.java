@@ -23,10 +23,11 @@ class CommandInterpreterServiceTest {
 
     @Test
     void sendsCommandAndRecognizesAllAllowedIntents() {
-        Fixture fixture = createFixture();
         String command = "Extraia os e-mails deste documento.";
 
         for (Intent intent : Intent.values()) {
+            Fixture fixture = createFixture();
+
             fixture.server().expect(requestTo(OLLAMA_URL + "/api/chat"))
                     .andExpect(method(POST))
                     .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
@@ -38,9 +39,8 @@ class CommandInterpreterServiceTest {
                     .andRespond(withSuccess(ollamaResponse(intent.name()), MediaType.APPLICATION_JSON));
 
             assertEquals(intent, fixture.service().interpret(command));
+            fixture.server().verify();
         }
-
-        fixture.server().verify();
     }
 
     @Test
