@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f8fc">
+  <title>DocIA — análise de documentos</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/app.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="DocIA, início">
+      <span class="brand-mark" aria-hidden="true">D</span>
+      <span>DocIA</span>
+    </a>
+    <span class="topbar-note">Análise inteligente de documentos</span>
+  </header>
+
+  <main class="layout">
+    <section class="intro" aria-labelledby="page-title">
+      <p class="eyebrow">SEU DOCUMENTO, MAIS SIMPLES</p>
+      <h1 id="page-title">Encontre o que importa<br><span>no seu documento.</span></h1>
+      <p class="intro-copy">Envie um PDF e diga em linguagem natural o que você procura. A DocIA organiza as informações encontradas para você.</p>
+    </section>
+
+    <section class="workspace" aria-label="Analisar documento">
+      <form id="analysis-form" novalidate>
+        <div class="field-group">
+          <label for="document">Documento PDF</label>
+          <label class="upload-box" for="document">
+            <span class="upload-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none"><path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5M5 14.5v3A2.5 2.5 0 0 0 7.5 20h9a2.5 2.5 0 0 0 2.5-2.5v-3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+            <span class="upload-copy"><strong id="file-label">Escolha um arquivo ou arraste até aqui</strong><small>PDF • até 20 MB</small></span>
+            <span class="browse-button">Selecionar PDF</span>
+            <input id="document" name="document" type="file" accept=".pdf,application/pdf" required>
+          </label>
+          <p class="field-hint" id="file-hint">Somente arquivos PDF são aceitos.</p>
+        </div>
+
+        <div class="field-group command-group">
+          <label for="command">O que deseja encontrar?</label>
+          <textarea id="command" name="command" rows="3" maxlength="1000" placeholder="Ex.: Encontre o CNPJ e o endereço da empresa" required></textarea>
+          <p class="field-hint">Descreva sua solicitação com suas próprias palavras.</p>
+        </div>
+
+        <div id="form-message" class="message" role="alert" aria-live="polite" hidden></div>
+        <button id="submit-button" class="submit-button" type="submit">
+          <span class="button-label">Analisar documento</span>
+          <span class="button-spinner" aria-hidden="true"></span>
+          <svg class="button-arrow" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M4 10h12m-5-5 5 5-5 5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </form>
+    </section>
+
+    <section id="results" class="results" aria-live="polite" aria-label="Resultados da análise" hidden>
+      <div class="results-heading">
+        <div>
+          <p class="eyebrow">RESULTADO DA ANÁLISE</p>
+          <h2 id="result-title">Informações encontradas</h2>
+        </div>
+        <span id="result-count" class="result-count"></span>
+      </div>
+      <div id="result-message" class="message result-message" role="status" hidden></div>
+      <div id="result-list" class="result-list"></div>
+    </section>
+
+    <footer>Seus documentos são utilizados somente para processar a solicitação.</footer>
+  </main>
+</body>
+</html>
