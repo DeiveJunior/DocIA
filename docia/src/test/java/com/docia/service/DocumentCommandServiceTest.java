@@ -66,7 +66,7 @@ class DocumentCommandServiceTest {
     void preservesFullTextResponseForOtherCommands() {
         var extracted = new PdfExtractionService.ExtractedDocument(1,
                 List.of(new PageText(1, "document text")));
-        var service = service(fixedExtraction(extracted));
+        var service = service(fixedExtraction(extracted), CommandInterpreterService.Intent.FULL_TEXT);
 
         Object response = service.process("sample.pdf", "read full text", multipart());
 
@@ -75,9 +75,14 @@ class DocumentCommandServiceTest {
     }
 
     private DocumentCommandService service(PdfExtractionService pdfExtractionService) {
+        return service(pdfExtractionService, CommandInterpreterService.Intent.UNKNOWN);
+    }
+
+    private DocumentCommandService service(
+            PdfExtractionService pdfExtractionService,
+            CommandInterpreterService.Intent intent) {
         CommandInterpreterService commandInterpreterService = mock(CommandInterpreterService.class);
-        when(commandInterpreterService.interpret(anyString()))
-                .thenReturn(CommandInterpreterService.Intent.UNKNOWN);
+        when(commandInterpreterService.interpret(anyString())).thenReturn(intent);
 
         return new DocumentCommandService(
                 pdfExtractionService,
