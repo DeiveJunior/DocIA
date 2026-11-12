@@ -39,6 +39,9 @@ public class DocumentCommandService {
         if (intent == CommandInterpreterService.Intent.UNKNOWN) {
             intent = intentFromKeywords(command);
         }
+        if (intent == CommandInterpreterService.Intent.UNKNOWN) {
+            return new DocumentCommandResponse(filename, command, "UNSUPPORTED", 0, List.of());
+        }
 
         PdfExtractionService.ExtractedDocument extracted = pdfExtractionService.extract(document);
         List<DocumentCommandResponse.PageText> pages = extracted.pages();
@@ -70,8 +73,7 @@ public class DocumentCommandService {
                     emailExtractionService.extract(pages));
             case FULL_TEXT -> new DocumentCommandResponse(
                     filename, command, "EXTRACTED", extracted.pageCount(), pages);
-            case UNKNOWN -> new DocumentCommandResponse(
-                    filename, command, "EXTRACTED", extracted.pageCount(), pages);
+            case UNKNOWN -> new DocumentCommandResponse(filename, command, "UNSUPPORTED", 0, List.of());
         };
     }
 
