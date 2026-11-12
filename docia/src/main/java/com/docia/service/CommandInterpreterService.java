@@ -31,10 +31,19 @@ public class CommandInterpreterService {
               sobre o local onde alguém mora.
             - PHONE: pedidos de telefone, celular ou número telefônico.
             - EMAIL: pedidos de e-mail ou correio eletrônico.
+            - NAME: pedidos para encontrar nomes de pessoas mencionadas no documento,
+              inclusive pedidos breves ou indiretos. Não classifique nomes de empresas,
+              razão social ou nome fantasia como NAME.
             - FULL_TEXT: pedidos para retornar o texto completo do documento.
             - UNKNOWN: intenção ambígua, não identificável ou fora dessas categorias.
 
             Exemplos:
+            "Nome" → NAME.
+            "Me traga o nome" → NAME.
+            "Me traga o nome deste documento" → NAME.
+            "Quais são os nomes das pessoas mencionadas?" → NAME.
+            "Qual é o nome da empresa?" → UNKNOWN.
+            "Informe a razão social" → UNKNOWN.
             "Preciso identificar o registro oficial que comprova a inscrição da empresa
             mencionada no contrato junto à Receita Federal" → CPF_CNPJ.
             "Informe o CNPJ da empresa" → CPF_CNPJ.
@@ -44,7 +53,7 @@ public class CommandInterpreterService {
             Responda somente com um objeto JSON válido, sem markdown ou texto adicional,
             contendo exatamente a propriedade "intent". Exemplo: {"intent":"EMAIL"}.
             Use somente um destes valores para "intent": FULL_TEXT, EMAIL, PHONE,
-            CPF_CNPJ, ADDRESS ou UNKNOWN.
+            CPF_CNPJ, ADDRESS, NAME ou UNKNOWN.
             """;
 
     private final RestClient restClient;
@@ -121,6 +130,7 @@ public class CommandInterpreterService {
         PHONE,
         CPF_CNPJ,
         ADDRESS,
+        NAME,
         UNKNOWN
     }
 }

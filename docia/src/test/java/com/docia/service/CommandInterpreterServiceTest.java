@@ -7,6 +7,8 @@ import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.http.HttpMethod.POST;
 import static org.springframework.test.web.client.match.MockRestRequestMatchers.content;
@@ -20,6 +22,11 @@ class CommandInterpreterServiceTest {
 
     private static final String OLLAMA_URL = "http://localhost:11434";
     private static final String MODEL = "qwen2.5-coder:0.5b";
+    private static final List<String> NAME_COMMANDS = List.of(
+            "Nome",
+            "Me traga o nome",
+            "Me traga o nome deste documento"
+    );
 
     @Test
     void sendsCommandAndRecognizesAllAllowedIntents() {
@@ -39,6 +46,20 @@ class CommandInterpreterServiceTest {
                     .andRespond(withSuccess(ollamaResponse(intent.name()), MediaType.APPLICATION_JSON));
 
             assertEquals(intent, fixture.service().interpret(command));
+            fixture.server().verify();
+        }
+    }
+
+    @Test
+    void recognizesNameIntentForShortAndNaturalLanguageCommands() {
+        for (String command : NAME_COMMANDS) {
+            Fixture fixture = createFixture();
+            fixture.server().expect(requestTo(OLLAMA_URL + "/api/chat"))
+                    .andExpect(jsonPath("$.messages[0].content").value(org.hamcrest.Matchers.containsString("\"Nome\" → NAME")))
+                    .andExpect(jsonPath("$.messages[1].content").value(command))
+                    .andRespond(withSuccess(ollamaResponse("NAME"), MediaType.APPLICATION_JSON));
+
+            assertEquals(Intent.NAME, fixture.service().interpret(command), command);
             fixture.server().verify();
         }
     }

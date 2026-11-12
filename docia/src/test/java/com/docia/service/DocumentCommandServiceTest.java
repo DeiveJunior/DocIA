@@ -2,6 +2,7 @@ package com.docia.service;
 
 import com.docia.dto.DocumentCommandResponse;
 import com.docia.dto.EmailExtractionResponse;
+import com.docia.dto.NameExtractionResponse;
 import com.docia.dto.PhoneExtractionResponse;
 import com.docia.dto.DocumentCommandResponse.PageText;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,12 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class DocumentCommandServiceTest {
+
+    private static final List<String> NAME_COMMANDS = List.of(
+            "Nome",
+            "Me traga o nome",
+            "Me traga o nome deste documento"
+    );
 
     @Test
     void returnsStructuredEmailResponseAndExtractsPdfOnce() {
@@ -63,6 +70,41 @@ class DocumentCommandServiceTest {
     }
 
     @Test
+    void routesNameCommandsWhenInterpreterRecognizesNameIntent() {
+        var service = nameService(CommandInterpreterService.Intent.NAME);
+
+        for (String command : NAME_COMMANDS) {
+            var response = assertInstanceOf(NameExtractionResponse.class,
+                    service.process("sample.pdf", command, multipart()));
+            assertEquals("Ana Silva", response.names().get(0).name());
+            assertEquals(1, response.names().get(0).pageNumber());
+        }
+    }
+
+    @Test
+    void fallsBackToNameIntentForNameCommandsWhenInterpreterReturnsUnknown() {
+        var service = nameService(CommandInterpreterService.Intent.UNKNOWN);
+
+        for (String command : NAME_COMMANDS) {
+            var response = assertInstanceOf(NameExtractionResponse.class,
+                    service.process("sample.pdf", command, multipart()));
+            assertEquals("Ana Silva", response.names().get(0).name());
+        }
+    }
+
+    @Test
+    void doesNotFallbackToNameIntentForCompanyNameRequests() {
+        var service = nameService(CommandInterpreterService.Intent.UNKNOWN);
+
+        assertInstanceOf(DocumentCommandResponse.class,
+                service.process("sample.pdf", "nome da empresa", multipart()));
+        assertInstanceOf(DocumentCommandResponse.class,
+                service.process("sample.pdf", "razão social", multipart()));
+        assertInstanceOf(DocumentCommandResponse.class,
+                service.process("sample.pdf", "nome fantasia", multipart()));
+    }
+
+    @Test
     void preservesFullTextResponseForOtherCommands() {
         var extracted = new PdfExtractionService.ExtractedDocument(1,
                 List.of(new PageText(1, "document text")));
@@ -74,13 +116,18 @@ class DocumentCommandServiceTest {
         assertEquals("document text", textResponse.pages().get(0).text());
     }
 
+    private DocumentCommandService nameService(CommandCommandServiceIntent intent) {
+        return service(fixedExtraction(new PdfExtractionService.ExtractedDocument(1,
+                List.of(new PageText(1, "Nome: Ana Silva")))), intent.intent());
+    }
+
     private DocumentCommandService service(PdfExtractionService pdfExtractionService) {
-        return service(pdfExtractionService, CommandInterpreterService.Intent.UNKNOWN);
+        return service(pdfExtractionService, CommandCommandServiceIntent.UNKNOWN.intent());
     }
 
     private DocumentCommandService service(
             PdfExtractionService pdfExtractionService,
-            CommandInterpreterService.Intent intent) {
+            CommandCommandServiceIntent intent) {
         CommandInterpreterService commandInterpreterService = mock(CommandInterpreterService.class);
         when(commandInterpreterService.interpret(anyString())).thenReturn(intent);
 
@@ -90,6 +137,7 @@ class DocumentCommandServiceTest {
                 new PhoneExtractionService(),
                 new CpfCnpjExtractionService(),
                 new AddressExtractionService(),
+                new NameExtractionService(),
                 commandInterpreterService);
     }
 
@@ -104,5 +152,20 @@ class DocumentCommandServiceTest {
 
     private MockMultipartFile multipart() {
         return new MockMultipartFile("document", "sample.pdf", "application/pdf", new byte[]{1});
+    }
+
+    private enum CommandCommandServiceIntent {
+        UNKNOWN(CommandInterpreterService.Intent.UNKNOWN),
+        NAME(CommandInterpreterService.Intent.NAME);
+
+        private final CommandInterpreterService.Intent intent;
+
+        CommandCommandServiceIntent(CommandInterpreterService.Intent intent) {
+            this.intent = intent;
+        }
+
+        private CommandInterpreterService.Intent intent() {
+            return intent;
+        }
     }
 }
