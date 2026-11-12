@@ -14,9 +14,9 @@ class PhoneExtractionServiceTest {
     @Test
     void extractsBrazilianMobileFixedAndUnformattedNumbersPreservingOriginalText() {
         var result = service.extract(List.of(new PageText(1,
-                "Celular (48) 99999-1234; fixo (48) 3333-2020; compacto 48999991234.")));
+                "Celular (48) 99999-1234; fixo (48) 3333-2020; compacto 48988881234.")));
 
-        assertEquals(List.of("(48) 99999-1234", "(48) 3333-2020", "48999991234"),
+        assertEquals(List.of("(48) 99999-1234", "(48) 3333-2020", "48988881234"),
                 result.stream().map(phone -> phone.phone()).toList());
         assertEquals(List.of(1, 1, 1), result.stream().map(phone -> phone.pageNumber()).toList());
     }
