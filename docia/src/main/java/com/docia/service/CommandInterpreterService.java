@@ -1,8 +1,5 @@
 package com.docia.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -10,6 +7,9 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 import java.util.Map;
@@ -28,12 +28,12 @@ public class CommandInterpreterService {
             """;
 
     private final RestClient restClient;
-    private final ObjectMapper objectMapper;
+    private final JsonMapper objectMapper;
     private final String model;
 
     public CommandInterpreterService(
             RestClient.Builder restClientBuilder,
-            ObjectMapper objectMapper,
+            JsonMapper objectMapper,
             @Value("${docia.ollama.url:http://localhost:11434}") String ollamaUrl,
             @Value("${docia.ollama.model:qwen2.5-coder:0.5b}") String model) {
         this.restClient = restClientBuilder.baseUrl(ollamaUrl).build();
@@ -56,7 +56,7 @@ public class CommandInterpreterService {
                     .body(String.class);
 
             return parseIntent(responseBody);
-        } catch (RestClientException | JsonProcessingException | IllegalArgumentException exception) {
+        } catch (RestClientException | JacksonException | IllegalArgumentException exception) {
             LOGGER.error("Falha ao interpretar o comando com Ollama; retornando UNKNOWN.", exception);
             return Intent.UNKNOWN;
         }
@@ -75,7 +75,7 @@ public class CommandInterpreterService {
         );
     }
 
-    private Intent parseIntent(String responseBody) throws JsonProcessingException {
+    private Intent parseIntent(String responseBody) throws JacksonException {
         if (responseBody == null || responseBody.isBlank()) {
             throw new IllegalArgumentException("Resposta vazia do Ollama.");
         }
