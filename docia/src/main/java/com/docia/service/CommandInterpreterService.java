@@ -21,29 +21,10 @@ public class CommandInterpreterService {
 
     private static final String SYSTEM_PROMPT = """
             Classifique o comando do usuário em exatamente uma destas intenções:
-
-            - CPF_CNPJ: pedido de CPF, CNPJ, documento de identificação ou número de
-              identificação pessoal ou empresarial.
-            - ADDRESS: pedido de endereço, rua, logradouro, localização, CEP ou informação
-              sobre o local onde alguém mora.
-            - PHONE: pedido de telefone, celular ou número telefônico.
-            - EMAIL: pedido de e-mail ou correio eletrônico.
-            - FULL_TEXT: pedido para retornar o texto completo do documento.
-            - UNKNOWN: intenção ambígua ou não identificável.
-
-            Distinga documento de identificação de endereço: documento ou número de
-            identificação corresponde a CPF_CNPJ; local onde alguém mora corresponde a ADDRESS.
-
-            Exemplos:
-            "Quero o documento de identificação da pessoa" → CPF_CNPJ.
-            "Quero saber onde a pessoa mora" → ADDRESS.
-            "Informe o CPF da pessoa" → CPF_CNPJ.
-            "Liste os endereços encontrados" → ADDRESS.
-
+            FULL_TEXT, EMAIL, PHONE, CPF_CNPJ, ADDRESS ou UNKNOWN.
             Responda somente com um objeto JSON válido, sem markdown ou texto adicional,
             contendo exatamente a propriedade "intent". Exemplo: {"intent":"EMAIL"}.
-            Use somente um destes valores para "intent": FULL_TEXT, EMAIL, PHONE,
-            CPF_CNPJ, ADDRESS ou UNKNOWN.
+            Use UNKNOWN se não for possível identificar a intenção.
             """;
 
     private final RestClient restClient;
@@ -54,7 +35,7 @@ public class CommandInterpreterService {
             RestClient.Builder restClientBuilder,
             JsonMapper objectMapper,
             @Value("${docia.ollama.url:http://localhost:11434}") String ollamaUrl,
-            @Value("${docia.ollama.model:qwen2.5-coder:0.5b}") String model) {
+            @Value("${docia.ollama.model:qwen2.5-coder:7b}") String model) {
         this.restClient = restClientBuilder.baseUrl(ollamaUrl).build();
         this.objectMapper = objectMapper;
         this.model = model;
