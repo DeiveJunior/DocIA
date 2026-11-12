@@ -66,7 +66,7 @@ public class DocumentCommandService {
     }
 
     private boolean requestsCpfCnpjExtraction(String command) {
-        return command.matches("(?iu).*\\b(?:cpf|cnpj)\\b.*");
+        return command.matches("(?iu).*\\b(?:cpfs?|cnpjs?)\\b.*");
     }
 
     private boolean requestsPhoneExtraction(String command) {
