@@ -15,16 +15,16 @@ import java.util.regex.Pattern;
 public class NameExtractionService {
 
     private static final Pattern PERSON_FIELD_PATTERN = Pattern.compile(
-            "(?iu)(nome\s+completo|nome|respons[aá]vel(?:\s+legal)?|representante(?:\s+legal)?|assinado\s+por|contratante|contratado)\s*[:\-]\s*(.+?)\s*(?=(?:\r?\n|;|$))"
+            "(?iu)(nome\\s+completo|nome|respons[aá]vel(?:\\s+legal)?|representante(?:\\s+legal)?|assinado\\s+por|contratante|contratado)\\s*[:\\-]\\s*(.+?)\\s*(?=(?:\\r?\\n|;|$))"
     );
     private static final Pattern COMPANY_KEYWORD = Pattern.compile(
-            "(?iu)\\b(?:empresa|institui[cç][aã]o|raz[aã]o\s+social|nome\s+fantasia|nome\s+da\s+empresa|ltda|s\.?a\.?|sociedade|epp|me\.?|mei)\\b"
+            "(?iu)\\b(?:empresa|institui[cç][aã]o|raz[aã]o\\s+social|nome\\s+fantasia|nome\\s+da\\s+empresa|ltda|s\\.?a\\.?|sociedade|epp|me\\.?|mei)\\b"
     );
     private static final Pattern LEADING_TITLE = Pattern.compile(
-            "(?iu)^(?:sr\.?|sra\.?|srta\.?|dr\.?|dra\.?|doutor|doutora|senhor|senhora|senhorita|gerente|diretor|diretora|presidente|coordenador|analista|engenheiro|advogado|contador|administrador)\\s+"
+            "(?iu)^(?:sr\\.?|sra\\.?|srta\\.?|dr\\.?|dra\\.?|doutor|doutora|senhor|senhora|senhorita|gerente|diretor|diretora|presidente|coordenador|analista|engenheiro|advogado|contador|administrador)\\s+"
     );
     private static final Pattern TRAILING_COMPANY_SUFFIX = Pattern.compile(
-            "(?iu)(?:\\s*[,;]|\\s*[-–—]\\s*)(?:\\b(?:empresa|institui[cç][aã]o|raz[aã]o\s+social|nome\s+fantasia|ltda|s\.?a\.?|sociedade|epp|me\.?|mei)\\b.*)$"
+            "(?iu)(?:\\s*[,;]|\\s*[-–—]\\s*)(?:\\b(?:empresa|institui[cç][aã]o|raz[aã]o\\s+social|nome\\s+fantasia|ltda|s\\.?a\\.?|sociedade|epp|me\\.?|mei)\\b.*)$"
     );
 
     public List<NameOccurrence> extract(List<PageText> pages) {
@@ -102,7 +102,7 @@ public class NameExtractionService {
         if (candidate.isBlank()) {
             return false;
         }
-        if (candidate.matches("(?iu).*\\b(?:empresa|institui[cç][aã]o|raz[aã]o\s+social|nome\s+fantasia|ltda|s\.?a\.?|sociedade|epp|me\.?|mei)\\b.*")) {
+        if (candidate.matches("(?iu).*\\b(?:empresa|institui[cç][aã]o|raz[aã]o\\s+social|nome\\s+fantasia|ltda|s\\.?a\\.?|sociedade|epp|me\\.?|mei)\\b.*")) {
             return false;
         }
 
