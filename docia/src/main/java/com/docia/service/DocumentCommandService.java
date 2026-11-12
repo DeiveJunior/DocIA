@@ -18,47 +18,77 @@ public class DocumentCommandService {
     private final PhoneExtractionService phoneExtractionService;
     private final CpfCnpjExtractionService cpfCnpjExtractionService;
     private final AddressExtractionService addressExtractionService;
+    private final CommandInterpreterService commandInterpreterService;
 
     public DocumentCommandService(PdfExtractionService pdfExtractionService,
                                   EmailExtractionService emailExtractionService,
                                   PhoneExtractionService phoneExtractionService,
                                   CpfCnpjExtractionService cpfCnpjExtractionService,
-                                  AddressExtractionService addressExtractionService) {
+                                  AddressExtractionService addressExtractionService,
+                                  CommandInterpreterService commandInterpreterService) {
         this.pdfExtractionService = pdfExtractionService;
         this.emailExtractionService = emailExtractionService;
         this.phoneExtractionService = phoneExtractionService;
         this.cpfCnpjExtractionService = cpfCnpjExtractionService;
         this.addressExtractionService = addressExtractionService;
+        this.commandInterpreterService = commandInterpreterService;
     }
 
     public Object process(String filename, String command, MultipartFile document) {
+        CommandInterpreterService.Intent intent = commandInterpreterService.interpret(command);
+        if (intent == CommandInterpreterService.Intent.UNKNOWN) {
+            intent = intentFromKeywords(command);
+        }
+
         PdfExtractionService.ExtractedDocument extracted = pdfExtractionService.extract(document);
         List<DocumentCommandResponse.PageText> pages = extracted.pages();
 
-        if (requestsAddressExtraction(command)) {
-            return new AddressExtractionResponse(filename, command, "EXTRACTED", extracted.pageCount(),
+        return switch (intent) {
+            case ADDRESS -> new AddressExtractionResponse(
+                    filename, command, "EXTRACTED", extracted.pageCount(),
                     addressExtractionService.extract(pages));
+            case CPF_CNPJ -> {
+                List<CpfCnpjExtractionResponse.CpfCnpjOccurrence> documents = cpfCnpjExtractionService.extract(pages)
+                        .stream()
+                        .map(item -> new CpfCnpjExtractionResponse.CpfCnpjOccurrence(
+                                item.type(), item.value(), item.pageNumber()))
+                        .toList();
+                yield new CpfCnpjExtractionResponse(
+                        filename, command, "EXTRACTED", extracted.pageCount(), documents);
+            }
+            case PHONE -> {
+                List<PhoneExtractionResponse.PhoneOccurrence> phones = phoneExtractionService.extract(pages)
+                        .stream()
+                        .map(item -> new PhoneExtractionResponse.PhoneOccurrence(
+                                item.phone(), item.pageNumber()))
+                        .toList();
+                yield new PhoneExtractionResponse(
+                        filename, command, "EXTRACTED", extracted.pageCount(), phones);
+            }
+            case EMAIL -> new EmailExtractionResponse(
+                    filename, command, "EXTRACTED", extracted.pageCount(),
+                    emailExtractionService.extract(pages));
+            case FULL_TEXT -> new DocumentCommandResponse(
+                    filename, command, "EXTRACTED", extracted.pageCount(), pages);
+            case UNKNOWN -> new DocumentCommandResponse(
+                    filename, command, "EXTRACTED", extracted.pageCount(), pages);
+        };
+    }
+
+    private CommandInterpreterService.Intent intentFromKeywords(String command) {
+        if (requestsAddressExtraction(command)) {
+            return CommandInterpreterService.Intent.ADDRESS;
         }
         if (requestsCpfCnpjExtraction(command)) {
-            List<CpfCnpjExtractionResponse.CpfCnpjOccurrence> documents = cpfCnpjExtractionService.extract(pages)
-                    .stream()
-                    .map(item -> new CpfCnpjExtractionResponse.CpfCnpjOccurrence(
-                            item.type(), item.value(), item.pageNumber()))
-                    .toList();
-            return new CpfCnpjExtractionResponse(filename, command, "EXTRACTED", extracted.pageCount(), documents);
+            return CommandInterpreterService.Intent.CPF_CNPJ;
         }
         if (requestsPhoneExtraction(command)) {
-            List<PhoneExtractionResponse.PhoneOccurrence> phones = phoneExtractionService.extract(pages)
-                    .stream()
-                    .map(item -> new PhoneExtractionResponse.PhoneOccurrence(item.phone(), item.pageNumber()))
-                    .toList();
-            return new PhoneExtractionResponse(filename, command, "EXTRACTED", extracted.pageCount(), phones);
+            return CommandInterpreterService.Intent.PHONE;
         }
         if (requestsEmailExtraction(command)) {
-            return new EmailExtractionResponse(filename, command, "EXTRACTED", extracted.pageCount(),
-                    emailExtractionService.extract(pages));
+            return CommandInterpreterService.Intent.EMAIL;
         }
-        return new DocumentCommandResponse(filename, command, "EXTRACTED", extracted.pageCount(), pages);
+        return CommandInterpreterService.Intent.UNKNOWN;
     }
 
     private boolean requestsAddressExtraction(String command) {
