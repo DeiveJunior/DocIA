@@ -116,18 +116,18 @@ class DocumentCommandServiceTest {
         assertEquals("document text", textResponse.pages().get(0).text());
     }
 
-    private DocumentCommandService nameService(CommandCommandServiceIntent intent) {
+    private DocumentCommandService nameService(CommandInterpreterService.Intent intent) {
         return service(fixedExtraction(new PdfExtractionService.ExtractedDocument(1,
-                List.of(new PageText(1, "Nome: Ana Silva")))), intent.intent());
+                List.of(new PageText(1, "Nome: Ana Silva")))), intent);
     }
 
     private DocumentCommandService service(PdfExtractionService pdfExtractionService) {
-        return service(pdfExtractionService, CommandCommandServiceIntent.UNKNOWN.intent());
+        return service(pdfExtractionService, CommandInterpreterService.Intent.UNKNOWN);
     }
 
     private DocumentCommandService service(
             PdfExtractionService pdfExtractionService,
-            CommandCommandServiceIntent intent) {
+            CommandInterpreterService.Intent intent) {
         CommandInterpreterService commandInterpreterService = mock(CommandInterpreterService.class);
         when(commandInterpreterService.interpret(anyString())).thenReturn(intent);
 
@@ -152,20 +152,5 @@ class DocumentCommandServiceTest {
 
     private MockMultipartFile multipart() {
         return new MockMultipartFile("document", "sample.pdf", "application/pdf", new byte[]{1});
-    }
-
-    private enum CommandCommandServiceIntent {
-        UNKNOWN(CommandInterpreterService.Intent.UNKNOWN),
-        NAME(CommandInterpreterService.Intent.NAME);
-
-        private final CommandInterpreterService.Intent intent;
-
-        CommandCommandServiceIntent(CommandInterpreterService.Intent intent) {
-            this.intent = intent;
-        }
-
-        private CommandInterpreterService.Intent intent() {
-            return intent;
-        }
     }
 }
