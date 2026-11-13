@@ -49,7 +49,6 @@ form.addEventListener('submit', async (event) => {
 
   const file = fileInput.files?.[0];
   const command = commandInput.value.trim();
-
   if (!file) {
     showMessage('Selecione um arquivo PDF para continuar.');
     fileInput.focus();
@@ -128,19 +127,70 @@ function renderResults(data) {
 
   if (String(data?.status || '').toUpperCase() === 'UNSUPPORTED') {
     resultTitle.textContent = 'Comando não suportado';
-    showResultMessage('Não foi possível identificar uma solicitação relacionada às informações que a DocIA extrai deste documento. Tente pedir CPF/CNPJ, endereço, telefone, e-mail ou o texto completo.', 'error');
+    showResultMessage(
+      'Não foi possível identificar uma solicitação relacionada às informações que a DocIA extrai deste documento. Tente pedir CPF/CNPJ, endereço, telefone, e-mail ou o texto completo.',
+      'error');
     resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     return;
   }
 
-  const records = collectRecords(data);
-  resultCount.textContent = `${records.length} ${records.length === 1 ? 'resultado' : 'resultados'}`;
-  if (records.length === 0) {
-    resultList.append(makeEmptyState('Nenhuma informação correspondente foi encontrada no documento.'));
+  if (data?.responseType === 'GENERAL_ANSWER') {
+    renderGeneralAnswer(data);
   } else {
-    for (const record of records) resultList.append(makeResultCard(record));
+    const records = collectRecords(data);
+    resultCount.textContent = `${records.length} ${records.length === 1 ? 'resultado' : 'resultados'}`;
+    if (records.length === 0) {
+      resultList.append(makeEmptyState('Nenhuma informação correspondente foi encontrada no documento.'));
+    } else {
+      for (const record of records) resultList.append(makeResultCard(record));
+    }
   }
   resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function renderGeneralAnswer(data) {
+  resultTitle.textContent = 'Resposta sobre o documento';
+
+  const answerCard = document.createElement('article');
+  answerCard.className = 'result-card';
+
+  const label = document.createElement('p');
+  label.className = 'result-type';
+  label.textContent = data.answerStatus === 'AI_UNAVAILABLE'
+    ? 'Interpretação indisponível'
+    : data.answerStatus === 'NOT_FOUND'
+      ? 'Informação não encontrada'
+      : 'Resposta';
+
+  const answer = document.createElement('p');
+  answer.className = 'result-value';
+  answer.textContent = data.answer || '';
+  answerCard.append(label, answer);
+
+  for (const source of data.sources ?? []) {
+    if (Number.isInteger(source.pageNumber)) {
+      const page = document.createElement('span');
+      page.className = 'page-tag';
+      page.textContent = `Página ${source.pageNumber}`;
+      answerCard.append(page);
+    }
+  }
+  resultList.append(answerCard);
+
+  const records = collectRecords(data.deterministicResults);
+  if (records.length > 0) {
+    const heading = document.createElement('p');
+    heading.className = 'result-type';
+    heading.textContent = 'Resultados encontrados pelos extratores';
+    resultList.append(heading);
+    for (const record of records) {
+      resultList.append(makeResultCard(record));
+    }
+  }
+
+  const answerCount = data.answerStatus === 'ANSWERED' ? 1 : 0;
+  const total = records.length + answerCount;
+  resultCount.textContent = `${total} ${total === 1 ? 'resultado' : 'resultados'}`;
 }
 
 function collectRecords(data) {
