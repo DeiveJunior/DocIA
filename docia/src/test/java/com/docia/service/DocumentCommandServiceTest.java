@@ -42,7 +42,7 @@ class DocumentCommandServiceTest {
         };
         Fixture fixture = fixture(pdf, CommandInterpreterService.Intent.EMAIL);
         when(fixture.email().extract(anyList())).thenReturn(List.of(
-                new EmailExtractionService.EmailOccurrence("a@example.com", 1)));
+                new EmailExtractionResponse.EmailOccurrence("a@example.com", 1)));
 
         Object response = fixture.service().process("sample.pdf", "find emails", multipart());
 
@@ -86,7 +86,7 @@ class DocumentCommandServiceTest {
                 fixedExtraction(extracted("a@example.com")),
                 CommandInterpreterService.Intent.EMAIL);
         when(email.email().extract(anyList())).thenReturn(List.of(
-                new EmailExtractionService.EmailOccurrence("a@example.com", 1)));
+                new EmailExtractionResponse.EmailOccurrence("a@example.com", 1)));
         assertInstanceOf(EmailExtractionResponse.class,
                 email.service().process("sample.pdf", "e-mails", multipart()));
         verify(email.general(), never()).answer(anyString(), anyList(), any());
@@ -137,8 +137,8 @@ class DocumentCommandServiceTest {
                 fixedExtraction(extracted("Pessoal: ana@gmail.com. Corporativo: ana@empresa.com.")),
                 CommandInterpreterService.Intent.EMAIL);
         when(fixture.email().extract(anyList())).thenReturn(List.of(
-                new EmailExtractionService.EmailOccurrence("ana@gmail.com", 1),
-                new EmailExtractionService.EmailOccurrence("ana@empresa.com", 1)));
+                new EmailExtractionResponse.EmailOccurrence("ana@gmail.com", 1),
+                new EmailExtractionResponse.EmailOccurrence("ana@empresa.com", 1)));
         when(fixture.general().answer(eq(command), anyList(), any()))
                 .thenReturn(new GeneralDocumentAnswerService.AnswerResult(
                         "ANSWERED", "ana@gmail.com", List.of(1)));
@@ -333,3 +333,4 @@ class DocumentCommandServiceTest {
             GeneralDocumentAnswerService general) {
     }
 }
+
